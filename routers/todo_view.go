@@ -1,10 +1,10 @@
 package routers
 
 import (
-	"gin-web/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"todo-list/models"
 )
 
 func getTodo(c *gin.Context) {
