@@ -11,7 +11,7 @@ func getTodo(c *gin.Context) {
 	id := c.Query("id")
 	intId, _ := strconv.Atoi(id)
 	todo := models.GetTodo(intId)
-	c.JSON(http.StatusOK, map[string]interface{}{
+	c.JSON(http.StatusOK, gin.H{
 		"id":       todo.Id,
 		"name":     todo.Name,
 		"value":    todo.Value,
@@ -19,12 +19,12 @@ func getTodo(c *gin.Context) {
 	})
 }
 
-func TodoList(c *gin.Context) {
+func TodoList(c *gin.Context) error {
 	//id := c.Query("id")
 	todos := models.TodoList()
 	ret := make([]map[string]interface{}, 0)
 	for _, todo := range todos {
-		one := map[string]interface{}{
+		one := gin.H{
 			"id":       todo.Id,
 			"name":     todo.Name,
 			"value":    todo.Value,
@@ -37,6 +37,7 @@ func TodoList(c *gin.Context) {
 		"code":    200,
 		"message": ret,
 	})
+	return nil
 }
 
 type TodoForm struct {
@@ -47,18 +48,28 @@ type TodoForm struct {
 
 func addTodo(c *gin.Context) {
 	var todoForm TodoForm
-	c.Bind(&todoForm)
+	err := c.Bind(&todoForm)
+	if err != nil {
+		return
+	}
 	todo := models.TodoModels{
 		Name:     todoForm.Name,
 		Value:    todoForm.Value,
 		Describe: todoForm.Describe,
 		Status:   "used",
 	}
-	_ = todo.Create()
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"code":    200,
-		"message": "success",
-	})
+	err = todo.Create()
+	if err != nil {
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"code":    400,
+			"message": err.Error(),
+		})
+	} else {
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"code":    200,
+			"message": "success",
+		})
+	}
 }
 
 func editTodo(c *gin.Context) {
